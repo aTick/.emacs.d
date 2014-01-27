@@ -1,6 +1,10 @@
-;;; haskell-show.el — A pretty printer for Haskell Show values.
+;;; haskell-show.el --- A pretty printer for Haskell Show values
 
-;; Copyright (C) 2011 Chris Done
+;; Copyright (C) 2011  Chris Done
+
+;; Author: Chris Done <chrisdone@gmail.com>
+
+;; This file is not part of GNU Emacs.
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -17,9 +21,9 @@
 ;; <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
-;; It doesn't support some number literals (probably). I'm not
-;; precisely sure what values Show will always produce. There is
+
+;; It doesn't support some number literals (probably).  I'm not
+;; precisely sure what values Show will always produce.  There is
 ;; however a test suite available, so patches for extra Show support
 ;; is welcome and should be easy to test.
 
@@ -27,6 +31,7 @@
 
 (defvar sexp-show "sexp-show")
 (require 'haskell-string)
+(with-no-warnings (require 'cl))
 
 (defun haskell-show-replace-region ()
   "Replace the given region with a pretty printed version."
@@ -75,24 +80,24 @@
     ('list (let ((start (point)))
              (insert "[")
              (haskell-show-mapcar/i (lambda (x i len)
-                                 (haskell-show-insert-pretty (+ column 1) x)
-                                 (unless (> i (- len 2))
-                                   (if (< (+ column (length (haskell-show-pretty tree parens)))
-                                          80)
-                                       (insert ",")
-                                     (insert (concat ",\n" (haskell-show-indent (+ 1 column) ""))))))
-                               (cdr tree))
+                                      (haskell-show-insert-pretty (+ column 1) x)
+                                      (unless (> i (- len 2))
+                                        (if (< (+ column (length (haskell-show-pretty tree parens)))
+                                               80)
+                                            (insert ",")
+                                          (insert (concat ",\n" (haskell-show-indent (+ 1 column) ""))))))
+                                    (cdr tree))
              (insert "]")))
     ('tuple (let ((start (point)))
               (insert "(")
               (haskell-show-mapcar/i (lambda (x i len)
-                                  (haskell-show-insert-pretty (+ column 1) x)
-                                  (unless (> i (- len 2))
-                                    (if (< (+ column (length (haskell-show-pretty tree parens)))
-                                           80)
-                                        (insert ",")
-                                      (insert (concat ",\n" (haskell-show-indent (+ 1 column) ""))))))
-                                (cdr tree))
+                                       (haskell-show-insert-pretty (+ column 1) x)
+                                       (unless (> i (- len 2))
+                                         (if (< (+ column (length (haskell-show-pretty tree parens)))
+                                                80)
+                                             (insert ",")
+                                           (insert (concat ",\n" (haskell-show-indent (+ 1 column) ""))))))
+                                     (cdr tree))
               (insert ")")))
     ('record
      (let ((record (cdr tree)) (overlay (list 'nil)))
@@ -106,23 +111,23 @@
        (let ((curly-start (1- (point)))
              (show-len (+ column (length (haskell-show-pretty tree parens)))))
          (haskell-show-mapcar/i (lambda (field i len)
-                             (insert 
-                              (haskell-show-indent
-                               (if (and (> i 0) (< show-len 80)) 0 column)
-                               (car field)))
-                             (insert " = ")
-                             (put-text-property (- (point) 3) (point) 'face
-                                                'font-lock-constant-face)
-                             (haskell-show-insert-pretty
-                              (if (< show-len 80)
-                                  0
-                                (+ (length (car field)) column 3))
-                              (cdr field))
-                             (unless (> i (- len 2))
-                               (if (< show-len 80)
-                                   (insert ", ")
-                                 (insert ",\n"))))
-                           (cdr record))
+                                  (insert
+                                   (haskell-show-indent
+                                    (if (and (> i 0) (< show-len 80)) 0 column)
+                                    (car field)))
+                                  (insert " = ")
+                                  (put-text-property (- (point) 3) (point) 'face
+                                                     'font-lock-constant-face)
+                                  (haskell-show-insert-pretty
+                                   (if (< show-len 80)
+                                       0
+                                     (+ (length (car field)) column 3))
+                                   (cdr field))
+                                  (unless (> i (- len 2))
+                                    (if (< show-len 80)
+                                        (insert ", ")
+                                      (insert ",\n"))))
+                                (cdr record))
          (insert (concat "\n" (haskell-show-indent column "}")))
          (progn
            (setf (car overlay) (make-overlay curly-start (- (point) 1) nil t))
@@ -143,9 +148,9 @@
                    (let ((overlay (make-overlay (+ 2 str-start) (point) nil t)))
                      (overlay-put overlay 'invisible t)
                      (put-text-property (+ 2 str-start) (point) 'face 'font-lock-string-face)
-                     (let ((button (make-text-button (+ 1 str-start) (+ 2 str-start) 
+                     (let ((button (make-text-button (+ 1 str-start) (+ 2 str-start)
                                                      :type 'haskell-show-toggle-button)))
-                       (put-text-property (+ 1 str-start) (+ 2 str-start) 
+                       (put-text-property (+ 1 str-start) (+ 2 str-start)
                                           'face 'font-lock-keyword-face)
                        (button-put button 'overlay (list overlay))
                        (button-put button 'hide-on-click t)))))
@@ -182,7 +187,7 @@
   "The callback to toggle the overlay visibility."
   (let ((overlay (button-get btn 'overlay)))
     (when overlay
-      (overlay-put (car overlay) 
+      (overlay-put (car overlay)
                    'invisible (not (overlay-get (car overlay)
                                                 'invisible)))))
   (let ((hide (button-get btn 'remove-on-click)))
@@ -250,3 +255,9 @@
           s))
 
 (provide 'haskell-show)
+
+;; Local Variables:
+;; byte-compile-warnings: (not cl-functions)
+;; End:
+
+;;; haskell-show.el ends here
