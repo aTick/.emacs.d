@@ -2,6 +2,22 @@
 (set-background-color "black")
 (set-foreground-color "white")
 
+;;Make emacsclient use the colors I like when in a graphical mode
+(defun set-window-colors (&rest frame)
+  (if window-system
+      (progn
+	(set-background-color "black")
+	(set-foreground-color "white"))))
+
+(add-hook 'after-make-frame-functions 'set-window-colors t)
+(require 'server)
+(defadvice server-create-window-system-frame
+  (after set-window-colors ())
+  "Set custom frame colours when creating the first frame on a display"
+  (message "Running after frame-initialize")
+  (set-window-colors))
+(ad-activate 'server-create-window-system-frame)
+
 (let ((default-directory (concat user-emacs-directory "lisp")))
   ;; Add everything under .emacs.d/lisp
   (add-to-list 'load-path default-directory)
