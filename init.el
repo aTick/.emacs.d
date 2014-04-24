@@ -22,8 +22,8 @@
   ;; Add everything under .emacs.d/lisp
   (add-to-list 'load-path default-directory)
   (normal-top-level-add-subdirs-to-load-path))
-(require 'icicles)
-(icy-mode)
+;(require 'icicles)
+;(icy-mode)
 (require 'haskell-mode)
 (require 'my-command-remap)
 
