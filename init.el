@@ -48,11 +48,15 @@
 
 ;;Set scheme program name under linux-like environments, and start an emacs server on windows.
 (cond
- ((and (or (string-equal system-type "gnu/linux")
-	   (string-equal system-type "cygwin"))
-       (or (file-exists-p "/usr/local/bin/guile")
-	   (file-exists-p "/usr/bin/guile")))
-  (setq scheme-program-name "guile"))
+ ((or (string-equal system-type "gnu/linux")
+      (string-equal system-type "cygwin"))
+  (progn
+    (if (or (file-exists-p "/usr/local/bin/guile")
+	    (file-exists-p "/usr/bin/guile"))
+	(setq scheme-program-name "guile"))
+    (if (or (file-exists-p "/usr/local/bin/sbcl")
+	    (file-exists-p "/usr/bin/sbcl"))
+	(setq inferior-lisp-program "sbcl"))))
  ((string-equal system-type "windows-nt")
     (progn
      (setq explicit-bash-args (list "--noediting" "-i"))
