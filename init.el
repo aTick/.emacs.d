@@ -21,6 +21,7 @@
 (let ((default-directory (concat user-emacs-directory "lisp")))
   ;; Add everything under .emacs.d/lisp
   (add-to-list 'load-path default-directory)
+  (setq normal-top-level-add-subdirs-inode-list nil)
   (normal-top-level-add-subdirs-to-load-path))
 ;(require 'icicles)
 ;(icy-mode)
