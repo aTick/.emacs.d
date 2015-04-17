@@ -27,6 +27,11 @@
 ;(icy-mode)
 (require 'haskell-mode)
 (require 'my-command-remap)
+(require 'paredit)
+
+(add-hook 'lisp-mode-hook 'paredit-mode)
+(add-hook 'scheme-mode-hook 'paredit-mode)
+(add-hook 'lisp-interaction-mode-hook 'paredit-mode)
 
 ;;Parenthesis matching
 (show-paren-mode 1) ;;Highlight pairs of matching parens
