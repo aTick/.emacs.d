@@ -2,41 +2,67 @@
 (set-background-color "black")
 (set-foreground-color "white")
 
-;;Make emacsclient use the colors I like when in a graphical mode
-(defun set-window-colors (&rest frame)
-  (if window-system
-      (progn
-	(set-background-color "black")
-	(set-foreground-color "white"))))
+;; Ensure emacsclient/new frames use the same colors as above
+(setq default-frame-alist `((background-color . "black")
+			    (foreground-color . "white")))
 
-(add-hook 'after-make-frame-functions 'set-window-colors t)
-(require 'server)
-(defadvice server-create-window-system-frame
-  (after set-window-colors ())
-  "Set custom frame colours when creating the first frame on a display"
-  (message "Running after frame-initialize")
-  (set-window-colors))
-(ad-activate 'server-create-window-system-frame)
+(menu-bar-mode -1)
+(tool-bar-mode -1)
 
+(require 'cl)
 (let ((default-directory (concat user-emacs-directory "lisp")))
   ;; Add everything under .emacs.d/lisp
   (add-to-list 'load-path default-directory)
   (setq normal-top-level-add-subdirs-inode-list nil)
-  (normal-top-level-add-subdirs-to-load-path))
-;(require 'icicles)
-;(icy-mode)
-(require 'haskell-mode)
-(require 'my-command-remap)
-(require 'paredit)
+  (normal-top-level-add-subdirs-to-load-path)
+  (setq load-path (remove-duplicates load-path :test 'string=)))
+(package-initialize)
+(add-to-list 'package-directory-list "~/.nix-profile/share/emacs/site-lisp/elpa")
+(package-initialize)
 
-(add-hook 'lisp-mode-hook 'paredit-mode)
-(add-hook 'scheme-mode-hook 'paredit-mode)
-(add-hook 'lisp-interaction-mode-hook 'paredit-mode)
+(require 'lsp)
+(require 'lsp-haskell)
+(require 'lsp-ui)
+(require 'shm)
+(mapcar (lambda (hook)
+	  (add-hook 'haskell-mode-hook hook))
+	'(lsp
+	  lsp-ui-mode
+	  structured-haskell-mode))
+
+(require 'ace-jump-mode)
+(global-set-key (kbd "M-o") 'ace-jump-mode)
+(setq ace-jump-mode-move-keys (loop for c from ?a to ?z collect c))
+(when (fboundp 'windmove-default-keybindings)
+  (windmove-default-keybindings))
+
+(require 'paredit)
+(require 'magit)
+(require 'aggressive-indent)
+(require 'nix-mode)
+
+(add-to-list 'auto-mode-alist `("\\.ly\\'" . LilyPond-mode))
+
+(require 'slime)
+(slime-setup '(slime-fancy))
+(slime-require 'swank-listener-hooks)
+(let ((hooks-for-paredit '(emacs-lisp-mode-hook
+			   lisp-mode-hook
+			   scheme-mode-hook
+			   lisp-inetraction-mode-hook
+			   clojure-mode-hook)))
+  (mapcar (lambda (hook)
+	    (add-hook hook 'paredit-mode)
+	    (add-hook hook 'aggressive-indent-mode))
+	  hooks-for-paredit))
 
 ;;Parenthesis matching
 (show-paren-mode 1) ;;Highlight pairs of matching parens
 (setq show-paren-delay 0) ;;Highlight immediately
 (setq show-paren-style 'mixed) ;;Highlight parens if both visible, otherwise highlight expression
+
+(ido-mode 1)
+(ido-everywhere 1)
 
 ;;Highlight region when selecting a region
 (transient-mark-mode 1)
@@ -52,19 +78,17 @@
 (put 'upcase-region 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
 
-;;Set scheme program name under linux-like environments, and start an emacs server on windows.
-(cond
- ((or (string-equal system-type "gnu/linux")
-      (string-equal system-type "cygwin"))
-  (progn
-    (if (or (file-exists-p "/usr/local/bin/guile")
-	    (file-exists-p "/usr/bin/guile"))
-	(setq scheme-program-name "guile"))
-    (if (or (file-exists-p "/usr/local/bin/sbcl")
-	    (file-exists-p "/usr/bin/sbcl"))
-	(setq inferior-lisp-program "sbcl"))))
- ((string-equal system-type "windows-nt")
-    (progn
-     (setq explicit-bash-args (list "--noediting" "-i"))
-     (setq shell-file-name "D:/Utilities/cygwin/bin/bash")
-     (server-start))))
+(setq inferior-lisp-program "sbcl")
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(lsp-haskell-process-path-hie "haskell-language-server-wrapper"))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
